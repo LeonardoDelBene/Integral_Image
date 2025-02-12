@@ -217,7 +217,7 @@ int main() {
         std::cout << "\n";
     }*/
 
-    std::cout << "\nTempo di esecuzione: " << duration.count() << " ms" << std::endl;
+    std::cout << "Tempo di esecuzione: " << duration.count() << " ms" << std::endl;
 
     delete[] h_mat;
     delete[] transposed_mat;
