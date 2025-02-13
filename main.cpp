@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <random>
 #include <chrono>
-#include <ctime>
 
 using namespace std;
 using namespace chrono;
@@ -24,22 +24,16 @@ vector<vector<int>> computeIntegralImage(const vector<vector<int>>& image) {
     return integral;
 }
 
-// Funzione per calcolare la somma in una regione rettangolare
-int sumRegion(const vector<vector<int>>& integral, int x1, int y1, int x2, int y2) {
-    int A = (x1 > 0 && y1 > 0) ? integral[x1 - 1][y1 - 1] : 0;
-    int B = (y1 > 0) ? integral[x2][y1 - 1] : 0;
-    int C = (x1 > 0) ? integral[x1 - 1][y2] : 0;
-    int D = integral[x2][y2];
+// Funzione per generare una matrice casuale di dimensione n x m
+vector<vector<int>> generateRandomMatrix(int n, int m) {
+    vector<vector<int>> matrix(n, vector<int>(m));
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dis(0, 255);
 
-    return D - B - C + A;
-}
-
-vector<vector<int>> generateRandomMatrix(int rows, int cols, int maxVal = 255) {
-    vector<vector<int>> matrix(rows, vector<int>(cols));
-    srand(time(0));
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            matrix[i][j] = rand() % (maxVal + 1);
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            matrix[i][j] = dis(gen);
         }
     }
     return matrix;
@@ -47,36 +41,49 @@ vector<vector<int>> generateRandomMatrix(int rows, int cols, int maxVal = 255) {
 
 
 int main() {
-    // Esempio di immagine 5x5
-    vector<vector<int> > image = generateRandomMatrix(16384, 16384);
-    /*for (int i = 0; i < image.size(); i++) {
-        for (int j = 0; j < image[i].size(); j++) {
-            cout << image[i][j] << " ";
+    const int N = 15000;
+    const int M = 15000;
+
+    // Generazione della matrice casuale
+    vector<vector<int>> image = generateRandomMatrix(N, M);
+    cout << "Matrice: " << N << "x" << M << endl;
+
+    vector<long long> tempi;
+    long long sommaTempi = 0;
+
+    /*std::cout << "Matrice iniziale:" << std::endl;
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < M; j++) {
+            std::cout<< image[i][j] << " ";
         }
-        cout << endl;
+        std::cout << "\n";
     }*/
 
+    // Eseguire l'algoritmo 10 volte
+    for (int i = 0; i < 5; i++) {
+        auto start = high_resolution_clock::now();
 
-    auto start = high_resolution_clock::now();
-    // Calcolo dell'Integral Image
-    vector<vector<int> > integral = computeIntegralImage(image);
+        vector<vector<int>> integral = computeIntegralImage(image);
 
-    auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<milliseconds>(stop - start);
-    cout << "Tempo di esecuzione: " << duration.count() << " ms" << endl;
+        auto stop = high_resolution_clock::now();
+        auto duration = duration_cast<milliseconds>(stop - start).count();
 
-    /*for (int i = 0; i < integral.size(); i++) {
-        for (int j = 0; j < integral[i].size(); j++) {
-            cout << integral[i][j] << " ";
-        }
-        cout << endl;
-    }*/
+        tempi.push_back(duration);
+        sommaTempi += duration;
+        /*std::cout << "Matrice finale:" << std::endl;
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < M; j++) {
+                std::cout << integral[i][j] << " ";
+            }
+            std::cout << "\n";
+        }*/
 
-    // Esempio di query: somma dei pixel nell'area (1,1) -> (3,3)
-    int sum = sumRegion(integral, 1, 1, 3, 3);
-    cout << "Somma della regione (1,1) -> (3,3): " << sum << endl;
+        cout << "Esecuzione " << i + 1 << ": " << duration << " ms" << endl;
+    }
+
+    // Calcolo della media
+    double media = static_cast<double>(sommaTempi) / 10.0;
+    cout << "Tempo medio: " << media << " ms" << endl;
 
     return 0;
 }
-
-

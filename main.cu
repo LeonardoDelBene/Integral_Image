@@ -8,8 +8,8 @@
 using namespace std;
 using namespace chrono;
 
-#define N 16384 // Numero di righe della matrice
-#define M 16384 // Numero di colonne della matrice
+#define N 60000 // Numero di righe della matrice
+#define M 60000 // Numero di colonne della matrice
 #define BLOCK_SIZE 1024
 
 __global__ void scan_kernel(int *d_in, int *d_out, int *block_sums, int m) {
@@ -168,13 +168,13 @@ void transpose_matrix(int* h_mat, int* h_transposed, int n, int m) {
 
 
 int main() {
-    int *h_mat = new int[N * M];
-    int *transposed_mat = new int[M * N]; // Matrice trasposta
+    vector<int> h_mat(static_cast<size_t>(N) * static_cast<size_t>(M));
+    vector<int> transposed_mat(static_cast<size_t>(M) * static_cast<size_t>(N));
 
     // Creazione del generatore di numeri casuali
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, 9); // Numeri casuali tra 0 e 9
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dis(0, 255);
 
     // Inizializza la matrice con numeri casuali
     for (int i = 0; i < N; i++) {
@@ -182,8 +182,6 @@ int main() {
             h_mat[i * M + j] = dis(gen);
         }
     }
-
-
     /*std::cout << "Matrice iniziale:" << std::endl;
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < M; j++) {
@@ -191,23 +189,23 @@ int main() {
         }
         std::cout << "\n";
     }*/
-
+    std::cout << "Matrice di dimensione " << N << "x" << M << std::endl;
     auto start = high_resolution_clock::now();
 
-    scan_matrix(h_mat, N, M);
+    scan_matrix(h_mat.data(), N, M);
     cudaDeviceSynchronize();
 
-    transpose_matrix(h_mat, transposed_mat, N, M);
+    transpose_matrix(h_mat.data(), transposed_mat.data(), N, M);
     cudaDeviceSynchronize();
 
-    scan_matrix(transposed_mat, M, N);
+    scan_matrix(transposed_mat.data(), M, N);
     cudaDeviceSynchronize();
 
-    transpose_matrix(transposed_mat, h_mat, M, N);
+    transpose_matrix(transposed_mat.data(), h_mat.data(), M, N);
     cudaDeviceSynchronize();
 
     auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<milliseconds>(stop - start);
+    auto duration = duration_cast<milliseconds>(stop - start).count();
 
     /*std::cout << "\nMatrice finale:" << std::endl;
     for (int i = 0; i < N; i++) {
@@ -216,9 +214,7 @@ int main() {
         }
         std::cout << "\n";
     }*/
+    cout << "\nTempo di esecuzione: " << duration << " ms" << endl;
 
-    std::cout << "Tempo di esecuzione: " << duration.count() << " ms" << std::endl;
-
-    delete[] h_mat;
-    delete[] transposed_mat;
+    return 0;
 }
