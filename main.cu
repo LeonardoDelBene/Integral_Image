@@ -8,8 +8,8 @@
 using namespace std;
 using namespace chrono;
 
-#define N 60000 // Numero di righe della matrice
-#define M 60000 // Numero di colonne della matrice
+#define N 10000 // Numero di righe della matrice
+#define M 10000 // Numero di colonne della matrice
 #define BLOCK_SIZE 1024
 
 __global__ void scan_kernel(int *d_in, int *d_out, int *block_sums, int m) {
